@@ -1,8 +1,14 @@
 <template>
   <div>
-    <b-table hover responsive="md" :items="items" @row-hovered="hoverRow">
+    <b-table
+      hover
+      responsive="md"
+      :items="items"
+      :fields="['name', 'surname', 'email']"
+      @row-hovered="hoverRow"
+    >
       <template #cell(email)="row">
-        <div class="row">
+        <div class="tr-row">
           {{ row.value }}
           <div class="popup-container">
             <div class="popup-container--icon mx-2">
@@ -45,8 +51,7 @@
     </record-modal>
     <confirm-modal
       id="delete-modal"
-      :msg="deleteText"
-      :okFnc="deleteFnc.bind(this, hoveredRow)"
+      :okFnc="deleteFnc.bind(this, hoveredIndex)"
     >
       <p v-text="deleteText"></p>
     </confirm-modal>
@@ -98,8 +103,8 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-.row {
+<style scoped>
+.tr-row {
   position: relative;
 }
 
@@ -110,17 +115,26 @@ export default {
   display: flex;
   justify-content: flex-end;
   align-items: baseline;
+}
 
-  .popup-container--icon > * {
-    cursor: pointer;
-  }
+.popup-container--icon > .b-icon {
+  cursor: pointer;
 }
 
 .b-table tr:hover .popup-container {
   display: flex;
 }
 
-.b-table > tbody > tr:not(:hover) .popup-container {
+.b-table tr:not(:hover) .popup-container {
   display: none;
+}
+
+@media (max-width: 768px) {
+  .popup-container {
+    position: relative;
+    justify-content: flex-start;
+    padding-top: 0.5rem;
+    padding-left: 0.5rem;
+  }
 }
 </style>

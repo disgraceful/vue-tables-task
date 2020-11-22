@@ -1,6 +1,8 @@
 <template>
   <b-container fluid="sm">
     <b-card>
+      <b-card-title> Users</b-card-title>
+      <b-card-text v-if="users.length < 1">No users found</b-card-text>
       <user-table
         :items="users"
         :addFnc="spliceUser"
@@ -9,25 +11,30 @@
       ></user-table>
       <hr />
       <b-row no-gutters>
-        <b-col v-b-modal.global-modal cols="auto" class="mr-2">
-          <b-button>Add User</b-button>
+        <b-col cols="auto" class="mr-2">
+          <b-button v-b-modal.global-modal>Add User</b-button>
         </b-col>
         <b-col cols="auto" class="mx-2">
-          <b-button>Clear All</b-button>
+          <b-button v-b-modal.global-confirm>Clear All</b-button>
         </b-col>
       </b-row>
     </b-card>
     <record-modal id="global-modal" :okFnc="addUser"></record-modal>
+    <confirm-modal id="global-confirm" :okFnc="clearUsers">
+      Are you sure you want to delete all users?
+    </confirm-modal>
   </b-container>
 </template>
 
 <script>
 import UserTable from "@/components/Table.vue";
 import Modal from "@/components/Modal.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 export default {
   components: {
     "user-table": UserTable,
     "record-modal": Modal,
+    "confirm-modal": ConfirmModal,
   },
 
   data() {
@@ -66,13 +73,15 @@ export default {
     editUser(index, user) {
       if (this.users[index]) {
         this.users.splice(index, 1, user);
+        this.saveUsers();
       }
-      this.saveUsers();
     },
 
-    deleteUser(user) {
-      this.users = this.users.filter((u) => user.email !== u.email);
-      this.saveUsers();
+    deleteUser(index) {
+      if (this.users[index]) {
+        this.users.splice(index, 1);
+        this.saveUsers();
+      }
     },
 
     saveUsers() {
@@ -98,5 +107,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss" scoped></style>

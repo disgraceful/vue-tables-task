@@ -8,36 +8,44 @@
     @ok="submit"
   >
     <form ref="form">
-      <b-form-group
-        label="Name"
-        label-for="name-input"
-        invalid-feedback="Name is required"
-      >
-        <b-form-input id="name-input" v-model="name" required></b-form-input>
+      <b-form-group label="Name" label-for="name-input">
+        <b-form-input
+          id="name-input"
+          :state="validateState('name')"
+          v-model.trim="$v.name.$model"
+        ></b-form-input>
+        <b-form-invalid-feedback id="input-1-live-feedback">{{
+          getErrorMsg("name")
+        }}</b-form-invalid-feedback>
       </b-form-group>
-      <b-form-group
-        label="Surname"
-        label-for="surname-input"
-        invalid-feedback="Surname is required"
-      >
+
+      <b-form-group label="Surname" label-for="surname-input">
         <b-form-input
           id="surname-input"
-          v-model="surname"
-          required
+          :state="validateState('surname')"
+          v-model.trim="$v.surname.$model"
         ></b-form-input>
+        <b-form-invalid-feedback id="input-1-live-feedback">{{
+          getErrorMsg("surname")
+        }}</b-form-invalid-feedback>
       </b-form-group>
-      <b-form-group
-        label="Email"
-        label-for="email-input"
-        invalid-feedback="Email is required"
-      >
-        <b-form-input id="email-input" v-model="email" required></b-form-input>
+
+      <b-form-group label="Email" label-for="email-input">
+        <b-form-input
+          id="email-input"
+          :state="validateState('email')"
+          v-model.trim="$v.email.$model"
+        ></b-form-input>
+        <b-form-invalid-feedback id="input-1-live-feedback">{{
+          getErrorMsg("email")
+        }}</b-form-invalid-feedback>
       </b-form-group>
     </form>
   </b-modal>
 </template>
 
 <script>
+import { required, minLength, email } from "vuelidate/lib/validators";
 export default {
   props: {
     id: { type: String, required: true },
@@ -53,22 +61,70 @@ export default {
     };
   },
 
+  validations: {
+    name: {
+      required,
+      minLength: minLength(4),
+    },
+    surname: {
+      required,
+      minLength: minLength(4),
+    },
+    email: {
+      required,
+      email,
+    },
+  },
+
   computed: {
     isEdit() {
       return this.user && this.mode == "edit";
     },
   },
   methods: {
+    validateState(propName) {
+      const { $dirty, $error } = this.$v[propName];
+      return $dirty ? !$error : null;
+    },
+
+    getErrorMsg(propName) {
+      const error = this.$v[propName];
+      if (!error.required) {
+        return `${propName} is required!`;
+      }
+
+      if (error.minLength !== undefined && !error.minLength) {
+        return `${propName} must be 4 symbols or longer!`;
+      }
+
+      if (error.email !== undefined && !error.email) {
+        return `Please enter valid email!`;
+      }
+    },
     resetModal() {
-      console.log("form reset");
       this.name = this.isEdit ? this.user.name : "";
       this.surname = this.isEdit ? this.user.surname : "";
       this.email = this.isEdit ? this.user.email : "";
+      this.$v.$reset(); //reset valdiation errors
+    },
+
+    validateForm() {
+      this.$v.name.$touch();
+      this.$v.surname.$touch();
+      this.$v.email.$touch();
+      if (
+        this.$v.name.$anyError ||
+        this.$v.surname.$anyError ||
+        this.$v.email.$anyError
+      ) {
+        return false;
+      }
+      return true;
     },
 
     submit(event) {
       event.preventDefault();
-      if (!this.$refs.form.checkValidity() || !this.okFnc) {
+      if (!this.validateForm() || !this.okFnc) {
         console.log("not valid");
         return;
       } else {
