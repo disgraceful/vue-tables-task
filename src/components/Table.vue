@@ -4,20 +4,29 @@
       <template #cell(email)="row">
         <div class="row">
           {{ row.value }}
-          <div class="popup-container" v-show="hoveredRow == row.item">
+          <div class="popup-container">
             <div class="popup-container--icon mx-2">
               <b-icon
-                v-b-modal.modal
+                v-b-modal.table-modal
+                @click="useFnc = addFnc.bind(this, hoveredIndex + 1)"
                 icon="person-plus"
                 variant="success"
                 font-scale="1.8"
               ></b-icon>
             </div>
             <div class="popup-container--icon mx-2">
-              <b-icon icon="pencil" font-scale="1.5"></b-icon>
+              <b-icon
+                v-b-modal.table-modal
+                @click="
+                  (useFnc = editFnc.bind(this, hoveredIndex)), (mode = 'edit')
+                "
+                icon="pencil"
+                font-scale="1.5"
+              ></b-icon>
             </div>
             <div class="popup-container--icon mx-2">
               <b-icon
+                v-b-modal.delete-modal
                 icon="x-circle"
                 variant="danger"
                 font-scale="1.5"
@@ -27,12 +36,26 @@
         </div>
       </template>
     </b-table>
-    <record-modal></record-modal>
+    <record-modal
+      id="table-modal"
+      :mode="mode"
+      :user="hoveredRow"
+      :okFnc="useFnc"
+    >
+    </record-modal>
+    <confirm-modal
+      id="delete-modal"
+      :msg="deleteText"
+      :okFnc="deleteFnc.bind(this, hoveredRow)"
+    >
+      <p v-text="deleteText"></p>
+    </confirm-modal>
   </div>
 </template>
 
 <script>
 import RecordModal from "./Modal";
+import ConfirmModal from "./ConfirmModal";
 
 export default {
   props: {
@@ -40,21 +63,35 @@ export default {
       type: Array,
       required: true,
     },
+    addFnc: Function,
+    editFnc: Function,
+    deleteFnc: Function,
   },
+
   components: {
     "record-modal": RecordModal,
+    "confirm-modal": ConfirmModal,
   },
 
   data() {
     return {
-      showModal: false,
       hoveredRow: null,
-      hovered: false,
+      hoveredIndex: -1,
+      useFnc: null,
+      mode: "",
     };
   },
+
+  computed: {
+    deleteText() {
+      return `Are you sure you want to delete user ${
+        this.hoveredRow ? this.hoveredRow.email : ""
+      }?`;
+    },
+  },
   methods: {
-    hoverRow(row) {
-      console.log(row);
+    hoverRow(row, index) {
+      this.hoveredIndex = index;
       this.hoveredRow = row;
     },
   },
